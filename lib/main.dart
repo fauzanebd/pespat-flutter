@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pespat/pages/dashboard/dashboard_binding.dart';
 
 import 'routes/app_pages.dart';
 
@@ -11,6 +12,7 @@ void main() {
   //   options: DefaultFirebaseOptions.currentPlatform,
   // );
   // LoadAuthBinding().dependencies();
+  // DashboardBinding().dependencies();
   HttpOverrides.global = MyHttpOverrides();
   runApp(const MyApp());
 }
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: "PesPat",
-      initialRoute: Routes.DASHBOARD,
+      initialRoute: Routes.LOGIN,
       getPages: AppPages.routes,
       theme: ThemeData(
         fontFamily: "Inter",

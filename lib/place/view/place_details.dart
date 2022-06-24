@@ -17,14 +17,16 @@ class PlaceDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User user = User(
-      id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'johndoe@ymail.com',
-      password: '123456',
-    );
-    var place = Get.arguments;
+    // User user = User(
+    //   id: '1',
+    //   firstName: 'John',
+    //   lastName: 'Doe',
+    //   email: 'johndoe@ymail.com',
+    //   password: '123456',
+    // );
+    var user = Get.arguments[0];
+    var place = Get.arguments[1];
+    var token = Get.arguments[2];
     ScreenUtil.init(
       context,
       designSize: Size(375, 812),
@@ -72,6 +74,7 @@ class PlaceDetails extends StatelessWidget {
                       child: ReservationButton(
                         place: place,
                         user: user,
+                        token: token,
                       ),
                     ),
                   ),
@@ -280,10 +283,12 @@ class ReservationButton extends StatelessWidget {
     Key? key,
     required this.place,
     required this.user,
+    required this.token,
   }) : super(key: key);
 
   final Place place;
   final User user;
+  final String token;
 
   @override
   Widget build(BuildContext context) {
@@ -330,8 +335,10 @@ class ReservationButton extends StatelessWidget {
                 Get.put<ReservationController>(ReservationController(
                   place: place,
                   user: user,
+                  token: token,
                 ));
-                Get.to(() => MakeReservation(), arguments: [place, user]);
+                Get.to(() => MakeReservation(),
+                    arguments: [place, user, token]);
               },
               child: Text(
                 'Book this place',

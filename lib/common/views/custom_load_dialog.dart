@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:pespat/common/app_color.dart';
 
 class CustomLoadDialog {
-  static void showDialog() {
+  static void showDialog({
+    Color barrierColor = AppColor.blue100,
+  }) {
     Get.dialog(
       WillPopScope(
         child: Container(
@@ -16,7 +18,7 @@ class CustomLoadDialog {
         onWillPop: () async => false,
       ),
       barrierDismissible: false,
-      barrierColor: AppColor.blue100,
+      barrierColor: barrierColor,
       useSafeArea: true,
     );
   }

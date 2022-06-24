@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:pespat/common/views/custom_load_dialog.dart';
 import 'package:pespat/reservation/controller/reservation_controller.dart';
+import 'package:pespat/reservation/view/reservation_details.dart';
 import 'package:responsive_builder/responsive_builder.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../common/app_color.dart';
 import '../../common/app_font.dart';
 import '../../payment/model/payment.dart';
 import '../../place/model/place.dart';
 import '../../user/model/user.dart';
+import '../bindings/reservation_details_bindings.dart';
+import '../controller/reservation_details_controller.dart';
 import '../model/reservation.dart';
 
 class MakeReservation extends GetView<ReservationController> {
@@ -23,6 +28,7 @@ class MakeReservation extends GetView<ReservationController> {
   Widget build(BuildContext context) {
     Place place = Get.arguments[0];
     User user = Get.arguments[1];
+    String token = Get.arguments[2];
     ScreenUtil.init(
       context,
       designSize: Size(375, 812),
@@ -57,6 +63,7 @@ class MakeReservation extends GetView<ReservationController> {
                           reservationController: controller,
                           place: place,
                           user: user,
+                          token: token,
                         ),
                       ],
                       // PayButton(),
@@ -236,11 +243,13 @@ class StudentVerification extends StatelessWidget {
     required this.reservationController,
     required this.place,
     required this.user,
+    required this.token,
   }) : super(key: key);
 
   final ReservationController reservationController;
   final Place place;
   final User user;
+  final String token;
 
   @override
   Widget build(BuildContext context) {
@@ -260,8 +269,14 @@ class StudentVerification extends StatelessWidget {
             ),
           ),
           TextButton(
-            onPressed: () {
-              reservationController.verifyStudent(user);
+            onPressed: () async {
+              // var url = "https://ugm-auth.vercel.app/login";
+              // if (await canLaunch(url)) {
+              //   await launch(url);
+              // } else {
+              //   throw 'Could not launch $url';
+              // }
+              await reservationController.verifyStudent(user, token);
             },
             child: Text(
               'Verify',
@@ -326,8 +341,47 @@ class PaymentButton extends StatelessWidget {
                 primary: AppColor.blue100,
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.w),
               ),
-              onPressed: () {
-                reservationController.payReservation();
+              onPressed: () async {
+                await reservationController.createReservation();
+                // CustomLoadDialog.showDialog(
+                //   barrierColor: Colors.black.withOpacity(0.5),
+                // );
+
+                ReservationStatusDetailsBindings(
+                  paymentId: reservationController.paymentInfo.value.id!,
+                  reservationId: reservationController
+                      .reservationData.value.reservationId!,
+                  // reservationDate: reservation.value.reservationTime!,
+                  reservationPrice:
+                      reservationController.place.price.toString(),
+                  placeName: reservationController.place.name!,
+                  userEmail: reservationController.user.email!,
+                  userName:
+                      "${reservationController.user.firstName} ${reservationController.user.lastName}",
+                ).dependencies();
+                Get.to(
+                  () => ReservationStatusDetails(),
+                  arguments: [
+                    reservationController.reservationData.value.reservationId!,
+                    reservationController.place.name!,
+                    reservationController.reservation_date.value.toString(),
+                    'pending',
+                  ],
+                  binding: ReservationStatusDetailsBindings(
+                    paymentId: reservationController.paymentInfo.value.id!,
+                    reservationId: reservationController
+                        .reservationData.value.reservationId!,
+                    // reservationDate: reservation.value.reservationTime!,
+                    reservationPrice:
+                        reservationController.place.price.toString(),
+                    placeName: reservationController.place.name!,
+                    userEmail: reservationController.user.email!,
+                    userName:
+                        "${reservationController.user.firstName} ${reservationController.user.lastName}",
+                  ),
+                  preventDuplicates: true,
+                );
+                // CustomLoadDialog.cancelDialog();
               },
               child: Text(
                 'Pay',

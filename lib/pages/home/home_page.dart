@@ -8,47 +8,21 @@ import 'package:responsive_builder/responsive_builder.dart';
 import '../../common/app_color.dart';
 import '../../common/app_font.dart';
 import '../../place/model/place.dart';
-import '../../place/controller/place_controller.dart';
 import '../../place/view/place_details.dart';
+import '../../user/model/user.dart';
 import '../home/home_controller.dart';
 
 class HomePage extends GetView<HomeController> {
-  // const HomePage({Key? key}) : super(key: key);
-  // final PlaceController placeController = Get.put(PlaceController());
-
-  var placeList = <Place>[
-    Place(
-      id: '1',
-      name: 'ExamplePlace1',
-      details: 'Kafe di tengah kota dengan konsep alam',
-      price: 30000,
-      photo:
-          'https://www.constructionplusasia.com/wp-content/uploads/2020/04/teduh-localic-005-scaled.jpg',
-      address:
-          'Jl. Raya Kedungkandang, Kedungkandang, Kec. Kedungkandang, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281',
-    ),
-    Place(
-      id: '2',
-      name: 'ExamplePlace2',
-      details: 'Kafe di tengah kota dengan konsep alam',
-      price: 30000,
-      photo:
-          'https://www.constructionplusasia.com/wp-content/uploads/2020/04/teduh-localic-005-scaled.jpg',
-      address:
-          'Jl. Raya Kedungkandang, Kedungkandang, Kec. Kedungkandang, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281',
-    ),
-    Place(
-      id: '1',
-      name: 'ExamplePlace3',
-      details: 'Kafe di tengah kota dengan konsep alam',
-      price: 30000,
-      photo:
-          'https://www.constructionplusasia.com/wp-content/uploads/2020/04/teduh-localic-005-scaled.jpg',
-      address:
-          'Jl. Raya Kedungkandang, Kedungkandang, Kec. Kedungkandang, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55281',
-    ),
-  ];
-
+  HomePage({
+    // required this.user_name,
+    // required this.user_id,
+    required this.token,
+    required this.user,
+  });
+  // final String user_name;
+  // final String user_id;
+  final String token;
+  final User user;
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(
@@ -103,43 +77,50 @@ class HomePage extends GetView<HomeController> {
       centerTitle: true,
     );
 
-    return ScreenTypeLayout(
-      breakpoints:
-          const ScreenBreakpoints(tablet: 600, desktop: 950, watch: 300),
-      mobile: Scaffold(
-        backgroundColor: AppColor.light100,
-        appBar: appBarPespat,
-        body: RefreshIndicator(
-          onRefresh: () async {
-            await Future.delayed(Duration(seconds: 1));
-            // await controller.getPlaces();
-          },
-          child: SingleChildScrollView(
-            padding: EdgeInsets.zero,
-            physics: BouncingScrollPhysics(),
-            scrollDirection: Axis.vertical,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                const HeaderWidget(
-                  fullName: "Agus",
+    return GetBuilder<HomeController>(
+      builder: (controller) {
+        return ScreenTypeLayout(
+          breakpoints:
+              const ScreenBreakpoints(tablet: 600, desktop: 950, watch: 300),
+          mobile: Scaffold(
+            backgroundColor: AppColor.light100,
+            appBar: appBarPespat,
+            body: RefreshIndicator(
+              onRefresh: () async {
+                // await Future.delayed(Duration(seconds: 1));
+                // await controller.getPlaces();
+                await controller.fetchPlaces();
+              },
+              child: SingleChildScrollView(
+                padding: EdgeInsets.zero,
+                physics: BouncingScrollPhysics(),
+                scrollDirection: Axis.vertical,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    HeaderWidget(
+                      fullName: "${user.firstName} ${user.lastName}",
+                    ),
+                    TitleOfSubElement(
+                      title: "Featured Places",
+                      onSeeAll: () {
+                        print("see all");
+                      },
+                      disableSeeAllButton: true,
+                    ),
+                    PlaceListView(
+                      placeList: controller.placeList,
+                      user: user,
+                      token: token,
+                    ),
+                  ],
                 ),
-                TitleOfSubElement(
-                  title: "Featured Places",
-                  onSeeAll: () {
-                    print("see all");
-                  },
-                  disableSeeAllButton: true,
-                ),
-                PlaceListView(
-                  placeList: placeList,
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -350,12 +331,16 @@ class TitleOfSubElement extends StatelessWidget {
 }
 
 class PlaceListView extends StatelessWidget {
-  const PlaceListView({
+  PlaceListView({
     Key? key,
-    this.placeList = const [],
+    required this.placeList,
+    required this.user,
+    required this.token,
   }) : super(key: key);
 
   final List<Place> placeList;
+  final User user;
+  final String token;
 
   @override
   Widget build(BuildContext context) {
@@ -368,6 +353,8 @@ class PlaceListView extends StatelessWidget {
       itemBuilder: (context, index) {
         return PlaceItem(
           place: placeList[index],
+          user: user,
+          token: token,
         );
       },
     );
@@ -378,9 +365,13 @@ class PlaceItem extends StatelessWidget {
   const PlaceItem({
     Key? key,
     required this.place,
+    required this.user,
+    required this.token,
   }) : super(key: key);
 
   final Place place;
+  final User user;
+  final String token;
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +478,10 @@ class PlaceItem extends StatelessWidget {
               child: InkWell(
                 onTap: () {
                   // Get.to(PlaceDetails(), arguments: place);
-                  Get.to(() => const PlaceDetails(), arguments: place);
+                  Get.to(
+                    () => const PlaceDetails(),
+                    arguments: [user, place, token],
+                  );
                 },
               ),
             ),
